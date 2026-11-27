@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>音频转谱</title>
+<style>
+  :root{ --bg:#f4f5f7; --card:#fff; --ink:#1c1e21; --sub:#6b7280; --line:#e3e5e8; --accent:#3b6cf6; --accent-ink:#fff; --bad:#d23b3b; --track:#e3e5e8; }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#16181c; --card:#1f2227; --ink:#eceef1; --sub:#9aa1ad; --line:#2d3138; --accent:#6d93ff; --accent-ink:#0f1218; --bad:#ff7a7a; --track:#2d3138; }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+  main{max-width:1080px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) 16px 40px}
+  h1{font-size:20px;margin:8px 0 16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+  .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  button{font:inherit;border:0;border-radius:10px;padding:10px 16px;background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:44px}
+  button.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .sub{color:var(--sub);font-size:14px;word-break:break-all}
+  .bad{color:var(--bad)}
+  .barwrap{height:8px;background:var(--track);border-radius:6px;overflow:hidden;margin:12px 0 4px}
+  #bar{height:100%;width:0;background:var(--accent);transition:width .15s}
+  input[type=number],select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-height:40px}
+  input[type=number]{width:96px}
+  .field{display:flex;flex-direction:column;gap:2px}
+  .tabs{display:flex;gap:8px;margin-bottom:12px}
+  .tabs button{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .tabs button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .paper{background:#fff;border-radius:10px;overflow:auto;padding:8px;color:#111}
+  .paper svg{max-width:100%;height:auto}
+  #summary{font-weight:600}
+  @media print{
+    body{background:#fff} main>*:not(#scoreCard){display:none!important}
+    #scoreCard{border:0;padding:0} .tabs,.noprint{display:none!important}
+    .paper{overflow:visible;padding:0}
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>音频转谱 · 简谱与五线谱</h1>
+
+  <section class="card">
+    <div class="row">
+      <button id="pick">选择音频文件…</button>
+      <input id="file" type="file" accept="audio/*,video/*,.aif,.aiff,.wav,.mp3,.m4a,.aac,.flac,.ogg,.opus,.mp4,.mov,.m4v,.mkv,.webm" hidden>
+      <button id="run" disabled>开始转谱</button>
+    </div>
+    <div id="fileInfo" class="sub" style="margin-top:8px">未选择文件</div>
+    <div class="barwrap"><div id="bar"></div></div>
+    <div id="stage" class="sub"></div>
+    <div id="msg" class="sub"></div>
+  </section>
+
+  <section id="ctrlCard" class="card" hidden>
+    <div id="summary" style="margin-bottom:10px"></div>
+    <div class="row">
+      <div class="field"><span class="sub">速度 BPM（空=自动）</span><input id="bpm" type="number" min="40" max="220" step="1" placeholder="自动"></div>
+      <div class="field"><span class="sub">拍号</span><select id="beats"><option value="4">4/4</option><option value="3">3/4</option><option value="2">2/4</option></select></div>
+      <div class="field"><span class="sub">左右手分界</span><select id="split"><option value="55">G3</option><option value="57">A3</option><option value="60" selected>C4（中央C）</option><option value="62">D4</option><option value="64">E4</option></select></div>
+      <div class="field"><span class="sub">节奏精细度</span><select id="grid"><option value="16" selected>16分音符（细）</option><option value="8">8分音符（简洁）</option></select></div>
+      <div class="field"><span class="sub">过滤弱音</span><select id="minamp"><option value="0.15">多保留</option><option value="0.22" selected>标准</option><option value="0.35">更干净</option></select></div>
+      <div class="field"><span class="sub">&nbsp;</span><button id="regen" class="ghost">按此设置重新生成</button></div>
+    </div>
+  </section>
+
+  <section id="scoreCard" class="card" hidden>
+    <div class="tabs noprint">
+      <button id="tabStaff" class="on">五线谱</button>
+      <button id="tabJianpu">简谱</button>
+    </div>
+    <div id="paperStaff" class="paper"></div>
+    <div id="paperJianpu" class="paper" hidden></div>
+    <div class="row noprint" style="margin-top:12px">
+      <button id="exXml" class="ghost">导出 MusicXML</button>
+      <button id="exMidi" class="ghost">导出 MIDI</button>
+      <button id="exSvg" class="ghost">导出简谱 SVG</button>
+      <button id="exPdf" class="ghost">打印 / 存为 PDF</button>
+    </div>
+    <div id="saveMsg" class="sub noprint" style="margin-top:8px"></div>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
